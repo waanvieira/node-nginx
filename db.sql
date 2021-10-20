@@ -1,0 +1,6 @@
+USE dbpeople
+
+CREATE TABLE IF NOT EXISTS people (
+    id INT(10) AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);

@@ -1,0 +1,58 @@
+version: "3.7"
+
+services:
+
+  app:
+    build:
+      context: node
+      dockerfile: Dockerfile
+    image: waanvieira/node
+    container_name: app
+    entrypoint: dockerize -wait tcp://db:3306 -timeout 20s docker-entrypoint.sh
+    volumes:
+      - ./node/:/usr/src/app
+      - /usr/src/app/node_modules
+    tty: true
+    networks:
+      - people
+    command: 'nodemon index.js'
+    depends_on:
+      - db
+
+  db:
+    image: mysql:5.7
+    command: --innodb-use-native-aio=0
+    container_name: db
+    restart: always
+    tty: true
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_DATABASE: dbpeople
+      MYSQL_ROOT_PASSWORD: '123456'
+      MYSQL_PASSWORD: '123456'
+      MYSQL_USER: devdb
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql  
+    volumes:
+      - ./mysql:/var/lib/mysql
+      - ./db.sql:/docker-entrypoint-initdb.d/setup.sql
+    networks:
+      - people
+  
+  nginx:
+    build:
+      context: nginx
+      dockerfile: Dockerfile
+    image: waanvieira/nginx
+    container_name: nginx
+    restart: always
+    tty: true
+    ports:
+      - 80:80
+    networks:
+      - people
+
+networks:
+  people:
+    driver: bridge
